@@ -32,7 +32,7 @@ ExitProcess proto,dwExitCode:dword
     arrBombas byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     arrTablero byte "s","s","s","s","s","s","s","s","s","s","s","s","s","s","s","s"
     contTurnos byte 0
-    contCasillas dword 0 ; contar cuantas casillas se muestran, si hay 13 gana
+    contCasillas dword 0    ; contar cuantas casillas se muestran, si hay 13 gana
     compCasillas dword 13
     ;
     contFor byte 0
@@ -89,23 +89,21 @@ ExitProcess proto,dwExitCode:dword
 main proc ; juego principal 
 
     call randomPositionMine     ; coloca las minas (hace toda la parte de gerax)
-    ;call showEmptyBoard
 
 inicio:                         ; empieza el juego 
 
-    mov eax, contCasillas 
+    mov eax, contCasillas       ; valida si ya muestra 13 casillas
     cmp eax, compCasillas 
-    je ganar
-    jmp seguir
+    je ganar                    ; si las muestra gana
+    jmp seguir                  ; si no, sigue
 
-validar:
-    ; mensaje de validacion 
-    push offset validarM          ; mensaje de perder
+validar:                    
+    push offset validarM        ; mensaje de validacion       
     call printf
     add esp, 4
 
 seguir:
-    call datos                  ; obtiene los datos
+    call datos                  ; obtiene los datos de fila y col ingresados por el usuario
 
     cmp fila, 4                 ; validar que sea solo valores de 0 - 3 
     jge validar
@@ -135,17 +133,17 @@ jugar:
     imul eax, 4
     add eax, columna
 
-    mov [arrTablero+eax], "d"
+    mov [arrTablero+eax], "d"   ; se coloca la b en el array del tablero
     mov ah, [arrTablero+eax]
 
-    inc contCasillas            ; cuantas casillas muestra 
-    ; ------------ aqui mandar a llamar a la funcion de imprimir y mostrar -----------
+    inc contCasillas            ; contador de cuantas casillas muestra 
+
+    ; ------------ aqui mandar a llamar a la funcion de imprimir y mostrar ----------- (se cambia el valor de contCasillas seguna cuantas se muestren)
 
     jmp inicio                  ; se repite el proceso para que el jugador ingrese otra vez 
 
-
 ganar: 
-    push offset ganarM          ; mensaje ganador
+    push offset ganarM          ; mensaje ganador (se puede cambiar el mensaje)
     call printf
     add esp, 4
     jmp fin
@@ -324,6 +322,7 @@ MinesPosition proc
     mov [arrBombas+eax], "m"
     mov bh, [arrBombas+eax]
 
+    ; ------------ esto se puede comentariar (mostrar las posiciones de las minas)----------
     push posiM2
     push posiM1
     push offset pruebaPrint
