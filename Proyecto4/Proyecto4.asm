@@ -14,11 +14,14 @@ ExitProcess proto,dwExitCode:dword
     bienvenida byte "Bienvenido al juego de buscaminas",0Ah,"Instrucciones: ",0Ah,"1) Ingrese la columna y fila que quiere seleccionar ",0Ah,0
     tablero BYTE "----------------------", 0Ah, "- | 0 | 1 | 2 | 3 |", 0Ah,"----------------------", 0Ah, "0 | %s | %s | %s | %s |", 0Ah, "----------------------", 0Ah, "1 | %s | %s | %s | %s |", 0Ah, "----------------------", 0Ah, "2 | %s | %s | %s | %s |", 0Ah, "----------------------", 0Ah, "3 | %s | %s | %s | %s |", 0Ah, "----------------------", 0Ah, 0
     top byte "-----------------",0Ah,0
+    perder byte "Ha perdido :(", 0Ah, 0
+    ganarM byte "Yeii ganaste :)", 0Ah, 0
+    validarM byte "Por favor ingrese una fila / columna valida ", 0Ah, 0
     writeString byte "| %s |",0
     writeDouble byte "| %d |",0
     ;Estos son para probar mostrar el tablero, despues se pueden borrar
-    pedirColumna byte "Ingrese la fila: ",0
-    pedirFila byte "Ingrese la Columna: ",0
+    pedirColumna byte "Ingrese la columna: ",0
+    pedirFila byte "Ingrese la fila: ",0
     fmt db "%d",0
     ;
     columna dword 0
@@ -29,6 +32,8 @@ ExitProcess proto,dwExitCode:dword
     arrBombas byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     arrTablero byte "s","s","s","s","s","s","s","s","s","s","s","s","s","s","s","s"
     contTurnos byte 0
+    contCasillas dword 0 ; contar cuantas casillas se muestran, si hay 13 gana
+    compCasillas dword 13
     ;
     contFor byte 0
     contArr dword 0
@@ -37,6 +42,11 @@ ExitProcess proto,dwExitCode:dword
     positionMine1 dword 0,0
     positionMine2 dword 0,0
     positionMineX dword 0,0
+    ; prueba
+    posiM1 dword 0
+    posiM2 dword 0
+    pruebaPrint byte "%d %d", 0Ah, 0
+    ;
     contPosition dword 0
     minaVista dword 0
     contMine dword 0
@@ -74,80 +84,94 @@ ExitProcess proto,dwExitCode:dword
     system proto c : vararg 	; To clear the console screen.
     rand proto c : vararg 		; To getting a random number.
     srand proto c : vararg 	
+    
+; --------------- aqui inicia el juego -------------- 
+main proc ; juego principal 
 
-public main
-main proc
-    push ebp
-    mov ebp, esp
+    call randomPositionMine     ; coloca las minas (hace toda la parte de gerax)
+    ;call showEmptyBoard
 
-    push offset bienvenida
+inicio:                         ; empieza el juego 
+
+    mov eax, contCasillas 
+    cmp eax, compCasillas 
+    je ganar
+    jmp seguir
+
+validar:
+    ; mensaje de validacion 
+    push offset validarM          ; mensaje de perder
     call printf
     add esp, 4
 
-    call randomPositionMine
-    call showEmptyBoard
-    call userInteraction
+seguir:
+    call datos                  ; obtiene los datos
 
-    mov ah, [arrBombas]
-    mov ah, [arrBombas+1]
-    mov ah, [arrBombas+2]
+    cmp fila, 4                 ; validar que sea solo valores de 0 - 3 
+    jge validar
+    cmp columna, 4
+    jge validar
 
-probar:
-    mov ebx, contArr
-    mov ah, [arrBombas+ebx]
-    inc contArr
-    cmp contArr, 16
-    jne probar
+    mov eax, [positionMine1]
+    cmp eax, fila               ; comparas la fila con la mina 1 
+    jne mina2                   ; si no son iguales, de una pasa a verificar mina 2 
 
-   ; mov ah, prueba
-   ;Prueba para comparar Strings
-    mov ah, comparador
-    cmp ah, [arrTablero+1]
-    je lbl1
-    jne lbl2
+    mov eax, [positionMine1+4]
+    cmp eax, columna            ; comparas la columna con la mina 1 
+    je gameOver                 ; perdio 
 
-lbl1:
-    mov eax, 20
-    mov eax, 2
-lbl2:
-    mov eax, 10
+mina2:
+    mov eax, [positionMine2]
+    cmp eax, fila               ; comparas la fila con la mina 2 
+    jne jugar
 
-    ;El resto
+    mov eax, [positionMine2+4]
+    cmp eax, columna            ; comparas la columna con la mina 2 
+    je gameOver                 ; perdio
 
-    mov ebx, 4
-    imul ebx, randomNum
-    mov eax, [arr+ebx]
-
-    push offset prueba1      ;Imprime el tablero
-    push offset prueba2
-    push offset prueba3
-    push offset prueba5
-    push offset prueba4
-    push offset prueba2
-    push offset prueba5
-    push offset prueba1
-    push offset prueba5
-    push offset prueba4
-    push offset prueba4
-    push offset prueba5
-    push offset prueba1
-    push offset prueba3
-    push offset prueba2
-    push offset prueba1
-    push offset tablero
-    call printf
-
-    add esp, 68
-
-    mov esp, ebp
-    pop ebp
+jugar: 
     
-	push 0
-    call exit ;
+    mov eax, fila               ; encontrar la posicion en el arr 
+    imul eax, 4
+    add eax, columna
+
+    mov [arrTablero+eax], "d"
+    mov ah, [arrTablero+eax]
+
+    inc contCasillas            ; cuantas casillas muestra 
+    ; ------------ aqui mandar a llamar a la funcion de imprimir y mostrar -----------
+
+    jmp inicio                  ; se repite el proceso para que el jugador ingrese otra vez 
+
+
+ganar: 
+    push offset ganarM          ; mensaje ganador
+    call printf
+    add esp, 4
+    jmp fin
+
+gameOver: 
+    push offset perder          ; mensaje de perder
+    call printf
+    add esp, 4
+
+fin:
+    ret 
 
 main endp
 
-userInteraction proc
+datos proc ; aqui pediran los datos 
+
+    ;Fila
+    push offset pedirFila
+    call printf
+    add esp, 4
+
+    lea  eax, fila  ; Obtener dirección del buffer
+    push eax 				; Empujar dirección a la pila
+    push offset fmt 		; Empujar formato a la pila
+    call scanf 				; Leer cadena desde la entrada estándar
+    add esp, 8
 
     ;Columna
     push offset pedirColumna
@@ -160,23 +184,12 @@ userInteraction proc
     call scanf 				; Leer cadena desde la entrada estándar
     add esp, 8
 
-    ;Fila
-    push offset pedirFila
-    call printf
-    add esp, 4
+    ret 
+datos endp
 
-    lea  eax, fila  ; Obtener dirección del buffer
-    push eax 				; Empujar dirección a la pila
-    push offset fmt 		; Empujar formato a la pila
-    call scanf 				; Leer cadena desde la entrada estándar
-    add esp, 8
+showEmptyBoard proc ; impresion del tablero ig 
     
-userInteraction endp
-
-showEmptyBoard proc
-    
-    #Esto se podria cambiar para que imprima de forma dinamica
-
+    ;Esto se podria cambiar para que imprima de forma dinamica
     mov contFor, 0
     cmp contTurnos, 0
     je inicio
@@ -193,13 +206,14 @@ inicio:
     push offset tablero
     call printf
     add esp, 68
-jugando:
-    
-fin:
 
+jugando:
+
+fin:
     ret
 
 showEmptyBoard endp
+
 
 randomPositionMine proc
 
@@ -275,6 +289,7 @@ finish:
     mov eax, [positionMine1]
     mov ebx, [positionMine2]
     cmp eax, ebx
+
     je position1
 
     call MinesPosition
@@ -288,26 +303,32 @@ MinesPosition proc
 
     ;Se busca la posicion de la mina 1
     ;Antes estaba: mov eax, [positionMine1]
-    mov eax, [positionMine1+4]
+    mov eax, [positionMine1]
     imul eax, 4
     ;Antes estaba: add eax, [positionMine1+4]
-    add eax, [positionMine1]
+    add eax, [positionMine1+4]
     ;Se agrega la mina
+    mov posiM1, eax
     mov [arrBombas+eax], "m"
     mov bh, [arrBombas+eax]
 
 
     ;Se busca la posicion de la mina 2
     ;Antes estaba: mov eax, [positionMine2]
-    mov eax, [positionMine2+4]
+    mov eax, [positionMine2]
     imul eax, 4
     ;Antes estaba: add eax, [positionMine2+4]
-    add eax, [positionMine2]
+    add eax, [positionMine2+4]
     ;Se agrega la mina
+    mov posiM2, eax
     mov [arrBombas+eax], "m"
     mov bh, [arrBombas+eax]
 
-
+    push posiM2
+    push posiM1
+    push offset pruebaPrint
+    call printf
+    add esp, 12
 
 inicio:
     ;contPosition
@@ -341,9 +362,9 @@ seguir:
     ;Contador de la posicion de las minas
     ;Como un buscaminas normal
     ;Coloca las bombas que hay al rededor
-    mov eax, [positionMineX+4]
+    mov eax, [positionMineX]
     imul eax, 4
-    add eax, [positionMineX]
+    add eax, [positionMineX+4]
     mov minaVista, eax
     mov eax, minaVista
 
