@@ -15,7 +15,7 @@ ExitProcess proto,dwExitCode:dword
     top byte "-------------------",0Ah,0
     perder byte "F perdiste :(", 0Ah, 0
     ganarM byte "Yeii ganaste :)", 0Ah, 0
-    validarM byte "Por favor ingrese una fila / columna valida ", 0Ah, 0
+    validarM byte "Por favor ingrese una fila / columna valida y no repetida", 0Ah, 0
     writeString byte " %s |",0
     writeDouble byte " %d |",0
     entr byte " ", 0Ah, 0
@@ -100,7 +100,7 @@ inicio:                         ; empieza el juego
     mov contArr, 0
     mov eax, contCasillas       ; valida si ya muestra 13 casillas
     cmp eax, compCasillas 
-    je ganar                    ; si las muestra gana
+    jg ganar                    ; si las muestra gana
     jmp seguir                  ; si no, sigue
 
 validar:                    
@@ -115,6 +115,7 @@ seguir:
     jge validar
     cmp columna, 4
     jge validar
+
 
     mov eax, [positionMine1]
     cmp eax, fila               ; comparas la fila con la mina 1 
@@ -138,6 +139,9 @@ jugar:
     mov eax, fila               ; encontrar la posicion en el arr 
     imul eax, 4
     add eax, columna
+
+    cmp [arrTablero+eax], "d"   ; valida que no haya sido ingresado 
+    je validar
 
     mov [arrTablero+eax], "d"   ; se coloca la d en el array del tablero
     mov ah, [arrTablero+eax]
@@ -302,7 +306,7 @@ datos proc ; aqui pediran los datos
     call printf
     add esp, 4
 
-    lea  eax, fila  ; Obtener dirección del buffer
+    lea  eax, fila          ; Obtener dirección del buffer
     push eax 				; Empujar dirección a la pila
     push offset fmt 		; Empujar formato a la pila
     call scanf 				; Leer cadena desde la entrada estándar
