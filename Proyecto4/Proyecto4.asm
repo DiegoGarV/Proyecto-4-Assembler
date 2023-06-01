@@ -1,4 +1,3 @@
-
 ;Universidad del Valle de Guatemala
 ;Francis Aguilar 22243, Gerardo Pineda 22880, Diego Garcia 22484
 ;Descripcion: Proyecto 4
@@ -12,14 +11,23 @@ ExitProcess proto,dwExitCode:dword
 
 .data
     bienvenida byte "Bienvenido al juego de buscaminas",0Ah,"Instrucciones: ",0Ah,"1) Ingrese la columna y fila que quiere seleccionar ",0Ah,0
-    tablero BYTE "----------------------", 0Ah, "- | 0 | 1 | 2 | 3 |", 0Ah,"----------------------", 0Ah, "0 | %s | %s | %s | %s |", 0Ah, "----------------------", 0Ah, "1 | %s | %s | %s | %s |", 0Ah, "----------------------", 0Ah, "2 | %s | %s | %s | %s |", 0Ah, "----------------------", 0Ah, "3 | %s | %s | %s | %s |", 0Ah, "----------------------", 0Ah, 0
-    top byte "-----------------",0Ah,0
-    perder byte "Ha perdido :(", 0Ah, 0
+    tablero BYTE "-------------------", 0Ah, "- | 0 | 1 | 2 | 3 |", 0Ah,"-------------------", 0Ah, "0 |   |   |   |   |", 0Ah, "-------------------", 0Ah, "1 |   |   |   |   |", 0Ah, "-------------------", 0Ah, "2 |   |   |   |   |", 0Ah, "-------------------", 0Ah, "3 |   |   |   |   |", 0Ah, "-------------------", 0Ah, 0
+    top byte "-------------------",0Ah,0
+    perder byte "F perdiste :(", 0Ah, 0
     ganarM byte "Yeii ganaste :)", 0Ah, 0
     validarM byte "Por favor ingrese una fila / columna valida ", 0Ah, 0
-    writeString byte "| %s |",0
-    writeDouble byte "| %d |",0
-    ;Estos son para probar mostrar el tablero, despues se pueden borrar
+    writeString byte " %s |",0
+    writeDouble byte " %d |",0
+    entr byte " ", 0Ah, 0
+    blank BYTE " ",0
+    encFila0 BYTE "0 |",0
+    encFila1 BYTE "1 |",0
+    encFila2 BYTE "2 |",0
+    encFila3 BYTE "3 |",0
+    first BYTE "- | 0 | 1 | 2 | 3 |", 0Ah, 0
+    bomb dword 2
+    perflag byte 0
+    ;
     pedirColumna byte "Ingrese la columna: ",0
     pedirFila byte "Ingrese la fila: ",0
     fmt db "%d",0
@@ -27,22 +35,24 @@ ExitProcess proto,dwExitCode:dword
     columna dword 0
     fila dword 0
     ;
-    comparador byte "s"
+    comparador byte "d"
+    comparador2 byte "s"
     ;
     arrBombas byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     arrTablero byte "s","s","s","s","s","s","s","s","s","s","s","s","s","s","s","s"
-    contTurnos byte 0
     contCasillas dword 0    ; contar cuantas casillas se muestran, si hay 13 gana
     compCasillas dword 13
     ;
+    contTurnos byte 0
     contFor byte 0
     contArr dword 0
+    showMe dword 0
     ;
     ;pos 0: fila y pos 1: columna
     positionMine1 dword 0,0
     positionMine2 dword 0,0
     positionMineX dword 0,0
-    ; prueba
+    ; tester
     posiM1 dword 0
     posiM2 dword 0
     pruebaPrint byte "%d %d", 0Ah, 0
@@ -54,13 +64,6 @@ ExitProcess proto,dwExitCode:dword
     randomSeed		DWORD 18
 	randomNum		DWORD ?
     maximo		DWORD 4
-    ;
-
-    prueba1 BYTE "1",0
-    prueba2 BYTE "2",0
-    prueba3 BYTE "3",0
-    prueba4 BYTE "4",0
-    prueba5 BYTE " ",0
     
 	
     
@@ -88,10 +91,13 @@ ExitProcess proto,dwExitCode:dword
 ; --------------- aqui inicia el juego -------------- 
 main proc ; juego principal 
 
-    call randomPositionMine     ; coloca las minas (hace toda la parte de gerax)
+    call randomPositionMine     ; coloca las minas 
+    push offset tablero
+    call printf
+    add esp,4
 
 inicio:                         ; empieza el juego 
-
+    mov contArr, 0
     mov eax, contCasillas       ; valida si ya muestra 13 casillas
     cmp eax, compCasillas 
     je ganar                    ; si las muestra gana
@@ -133,14 +139,142 @@ jugar:
     imul eax, 4
     add eax, columna
 
-    mov [arrTablero+eax], "d"   ; se coloca la b en el array del tablero
+    mov [arrTablero+eax], "d"   ; se coloca la d en el array del tablero
     mov ah, [arrTablero+eax]
 
     inc contCasillas            ; contador de cuantas casillas muestra 
 
-    ; ------------ aqui mandar a llamar a la funcion de imprimir y mostrar ----------- (se cambia el valor de contCasillas seguna cuantas se muestren)
+showTime:
+    mov eax, contArr
+    cmp eax, 16
+    je flagcomp
+    cmp eax, 0
+    je eFila0
+    cmp eax, 4
+    je eFila1
+    cmp eax, 8
+    je eFila2
+    cmp eax, 12
+    je eFila3
+    jne continua
 
-    jmp inicio                  ; se repite el proceso para que el jugador ingrese otra vez 
+    flagcomp:
+        cmp perflag, 1
+        je eLastL
+        jne eLastW
+
+    eFila0:
+        push offset top
+        call printf
+        add esp,4
+        push offset first
+        call printf
+        add esp,4
+        push offset top
+        call printf
+        add esp,4
+        push offset encFila0
+        call printf
+        add esp,4
+        jmp continua
+
+    eFila1:
+        push offset entr
+        call printf
+        add esp,4
+        push offset top
+        call printf
+        add esp,4
+        push offset encFila1
+        call printf
+        add esp,4
+        jmp continua
+
+    eFila2:
+        push offset entr
+        call printf
+        add esp,4
+        push offset top
+        call printf
+        add esp,4
+        push offset encFila2
+        call printf
+        add esp,4
+        jmp continua
+
+    eFila3:
+        push offset entr
+        call printf
+        add esp,4
+        push offset top
+        call printf
+        add esp,4
+        push offset encFila3
+        call printf
+        add esp,4
+        jmp continua
+
+    eLastW:
+        push offset entr
+        call printf
+        add esp,4
+        push offset top
+        call printf
+        add esp,4
+        jmp inicio                          ; se repite el proceso para que el jugador ingrese otra vez 
+
+    eLastL:
+        push offset entr
+        call printf
+        add esp,4
+        push offset top
+        call printf
+        add esp,4
+        jmp gameOver                          ; pierde
+
+    continua:
+        mov eax, contArr
+        mov bl, [arrTablero+eax]
+        cmp perflag, 1
+        jne compNorm 
+        cmp bl, comparador
+        je esD
+        cmp bl, comparador2
+        je esS
+        jne esM
+
+        compNorm:
+            cmp bl, comparador
+            je esD
+            jne esS
+
+        esD:
+            mov eax, contArr
+            movzx ebx, [arrBombas+eax]
+            mov showMe, ebx
+            push showMe
+            push offset writeDouble
+            call printf
+            add esp,8
+            inc contArr
+            jmp showTime
+        
+        esS:
+            push offset blank
+            push offset writeString
+            call printf
+            add esp,8
+            inc contArr
+            jmp showTime
+
+        esM:
+            push offset bomb
+            push offset writeString
+            call printf
+            add esp,8
+            inc contArr
+            jmp showTime
+    
 
 ganar: 
     push offset ganarM          ; mensaje ganador (se puede cambiar el mensaje)
@@ -149,6 +283,9 @@ ganar:
     jmp fin
 
 gameOver: 
+    inc perflag
+    cmp perflag, 1
+    je showTime
     push offset perder          ; mensaje de perder
     call printf
     add esp, 4
@@ -194,7 +331,7 @@ showEmptyBoard proc ; impresion del tablero ig
     jne fin
 
 inicio:
-    push offset prueba5    ;Imprime el tablero
+    push offset blank    ;Imprime el tablero
 
     inc contFor
 
@@ -308,6 +445,7 @@ MinesPosition proc
     ;Se agrega la mina
     mov posiM1, eax
     mov [arrBombas+eax], "m"
+    mov [arrTablero+eax], "m"
     mov bh, [arrBombas+eax]
 
 
@@ -320,6 +458,7 @@ MinesPosition proc
     ;Se agrega la mina
     mov posiM2, eax
     mov [arrBombas+eax], "m"
+    mov [arrTablero+eax], "m"
     mov bh, [arrBombas+eax]
 
     ; ------------ esto se puede comentariar (mostrar las posiciones de las minas)----------
