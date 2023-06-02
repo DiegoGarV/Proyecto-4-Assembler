@@ -150,26 +150,26 @@ jugar:
 
     inc contCasillas            ; contador de cuantas casillas muestra 
 
-showTime:
+showTime:                       ; Muestra el tablero con cada jugada
     mov eax, contArr
-    cmp eax, 16
-    je flagcomp
-    cmp eax, 0
+    cmp eax, 16                 ; Mira si ya se mostraron las 16 casillas
+    je flagcomp                 ; Si sí lo envia al comparador que muestra el mensaje al perder o continuar
+    cmp eax, 0                  ; Si es el primer espacio en el array se va a lo que muestra el encabezado y el numero de fila
     je eFila0
-    cmp eax, 4
+    cmp eax, 4                  ; Si es el 4to espacio hace un enter y muestra el número de la nueva fila
     je eFila1
-    cmp eax, 8
+    cmp eax, 8                  ; Si es el 8vo espacio hace un enter y muestra el número de la nueva fila
     je eFila2
-    cmp eax, 12
+    cmp eax, 12                 ; Si es el 12vo espacio hace un enter y muestra el número de la nueva fila
     je eFila3
-    jne continua
+    jne continua                ; Si no es ninguno se va a continua
 
-    flagcomp:
+    flagcomp:                   ; Aqui mira si ya perdió o no para mostrar el tablero con o sin las bombas
         cmp perflag, 1
         je eLastL
         jne eLastW
 
-    eFila0:
+    eFila0:                     ; Muestra el numero de las columnas y de la fila 0
         push offset top
         call printf
         add esp,4
@@ -184,7 +184,7 @@ showTime:
         add esp,4
         jmp continua
 
-    eFila1:
+    eFila1:                                ; Muestra el numero de la fila 1
         push offset entr
         call printf
         add esp,4
@@ -196,7 +196,7 @@ showTime:
         add esp,4
         jmp continua
 
-    eFila2:
+    eFila2:                             ; Muestra el numero de la fila 2
         push offset entr
         call printf
         add esp,4
@@ -208,7 +208,7 @@ showTime:
         add esp,4
         jmp continua
 
-    eFila3:
+    eFila3:                             ; Muestra el numero de la fila 3
         push offset entr
         call printf
         add esp,4
@@ -220,7 +220,7 @@ showTime:
         add esp,4
         jmp continua
 
-    eLastW:
+    eLastW:                                 ;Coloca lo último del tablero si aun no ha perdido
         push offset entr
         call printf
         add esp,4
@@ -229,7 +229,7 @@ showTime:
         add esp,4
         jmp inicio                          ; se repite el proceso para que el jugador ingrese otra vez 
 
-    eLastL:
+    eLastL:                                 ; Coloca lo último si ya perdió
         push offset entr
         call printf
         add esp,4
@@ -238,23 +238,23 @@ showTime:
         add esp,4
         jmp gameOver                          ; pierde
 
-    continua:
+    continua:                               ; Aqui se va para poner la info en cada casilla
         mov eax, contArr
         mov bl, [arrTablero+eax]
-        cmp perflag, 1
-        jne compNorm 
+        cmp perflag, 1                      ; Ve que el jugador no haya perdido (si es 1 es porque ya perdio)
+        jne compNorm                        ; Si no hace la comparación básica
         cmp bl, comparador
         je esD
-        cmp bl, comparador2
+        cmp bl, comparador2                 ; Si si hace dos comparaciones para además de los numeros y los espacios sin "escavar", también mostrar las minas
         je esS
         jne esM
 
-        compNorm:
+        compNorm:                           ; Este comparador solo es para ver si pone los números y los espacios sin "escavar"
             cmp bl, comparador
             je esD
             jne esS
 
-        esD:
+        esD:                                ; Muestra los números
             mov eax, contArr
             movzx ebx, [arrBombas+eax]
             mov showMe, ebx
@@ -265,7 +265,7 @@ showTime:
             inc contArr
             jmp showTime
         
-        esS:
+        esS:                                ; Muestra los espacios
             push offset blank
             push offset writeString
             call printf
@@ -273,13 +273,13 @@ showTime:
             inc contArr
             jmp showTime
 
-        esM:
+        esM:                                ; Muestra las minas
             push offset bomb
             push offset writeString
             call printf
             add esp,8
             inc contArr
-            jmp showTime
+            jmp showTime                    ; Se repite el ciclo para cada casilla
     
 
 ganar: 
