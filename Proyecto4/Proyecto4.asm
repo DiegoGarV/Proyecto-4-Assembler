@@ -43,6 +43,7 @@ ExitProcess proto,dwExitCode:dword
     contCasillas dword 0    ; contar cuantas casillas se muestran, si hay 13 gana
     compCasillas dword 13
     ;
+    cccont dword 0
     contTurnos byte 0
     contFor byte 0
     contArr dword 0
@@ -92,6 +93,7 @@ ExitProcess proto,dwExitCode:dword
 main proc ; juego principal 
 
     call randomPositionMine     ; coloca las minas 
+
     push offset tablero
     call printf
     add esp,4
@@ -523,7 +525,7 @@ seguir:
         .ENDIF
 
         ;Fila x columna
-        mov eax, [positionMineX] ;Si la fila es 0 significa que no hay nada a la izquierda
+        mov eax, [positionMineX+4] ;Si la fila es 0 significa que no hay nada a la izquierda
         .IF eax != 0
             ;Se incrementa el numero de arriba la izquierda
             mov eax, minaVista
@@ -536,7 +538,7 @@ seguir:
 
         .ENDIF
 
-        mov eax, [positionMineX]
+        mov eax, [positionMineX+4]
 
         .IF eax != 3 ;Si es 3 significa que no existe nada a la derecha
             ;Se incrementa el numero de arriba la derecho de la bomba
@@ -553,7 +555,7 @@ seguir:
     .ENDIF
 
     ;Derecha o izquierda
-    mov eax, [positionMineX]
+    mov eax, [positionMineX+4]
     .IF eax != 0 ;Si es cero significa que no existe parte izquierda
         mov eax, minaVista
         sub eax, 1
@@ -564,7 +566,7 @@ seguir:
         .ENDIF
     .ENDIF
 
-    mov eax, [positionMineX]
+    mov eax, [positionMineX+4]
     .IF eax != 3 ;Si es 3 significa que no existe parte de la derecha
         mov eax, minaVista
         add eax, 1
@@ -588,7 +590,7 @@ seguir:
             inc [arrBombas+eax]
         .ENDIF
 
-         mov eax, [positionMineX] ;Si la columna es 0 significa que no hay nada a la izquierda
+         mov eax, [positionMineX+4] ;Si la columna es 0 significa que no hay nada a la izquierda
         .IF eax != 0
             ;Se incrementa el numero de abajo a la izquierda
             mov eax, minaVista
@@ -601,7 +603,7 @@ seguir:
 
         .ENDIF
 
-        mov eax, [positionMineX]
+        mov eax, [positionMineX+4]
         .IF eax != 3 ;Si es 3 significa que no existe nada a la derecha
             ;Se incrementa el numero de abajo la derecho de la bomba
             mov eax, minaVista
