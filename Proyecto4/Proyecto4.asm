@@ -10,7 +10,12 @@ ExitProcess proto,dwExitCode:dword
 
 
 .data
-    bienvenida byte "Bienvenido al juego de buscaminas",0Ah,"Instrucciones: ",0Ah,"1) Ingrese la columna y fila que quiere seleccionar ",0Ah,0
+    bienvenida byte "Bienvenido al juego de buscaminas",0Ah,"Instrucciones: ",0Ah,"1) Ingrese la fila y columna que quiere seleccionar ",0Ah,0Ah,0
+    pregunta byte "Desea seguir jugando? si (1), no(2) ", 0Ah, 0
+    respuesta dword 0
+    salida byte "Adios !!!! Fue un gusto", 0Ah, 0
+    ms byte "Respuesta no valida" , 0Ah, 0
+    m1 byte "Tablero y posiciones: ", 0Ah,0
     tablero BYTE "-------------------", 0Ah, "- | 0 | 1 | 2 | 3 |", 0Ah,"-------------------", 0Ah, "0 |   |   |   |   |", 0Ah, "-------------------", 0Ah, "1 |   |   |   |   |", 0Ah, "-------------------", 0Ah, "2 |   |   |   |   |", 0Ah, "-------------------", 0Ah, "3 |   |   |   |   |", 0Ah, "-------------------", 0Ah, 0
     top byte "-------------------",0Ah,0
     perder byte "F perdiste :(", 0Ah, 0
@@ -92,12 +97,22 @@ ExitProcess proto,dwExitCode:dword
 ; --------------- aqui inicia el juego -------------- 
 main proc ; juego principal 
 
+begin: 
+
     call randomPositionMine     ; coloca las minas 
+
+    push offset m1
+    call printf
+    add esp,4
 
     push offset tablero
     call printf
     add esp,4
 
+    push offset bienvenida
+    call printf
+    add esp, 4
+    
 inicio:                         ; empieza el juego 
     mov contArr, 0
     mov eax, contCasillas       ; valida si ya muestra 13 casillas
@@ -297,6 +312,37 @@ gameOver:
     add esp, 4
 
 fin:
+
+    jmp salidaF                  ; se salta la validacion
+
+validarS: 
+
+    push offset mS 
+    call printf
+    add esp,4
+
+salidaF: 
+
+    push offset pregunta 
+    call printf
+    add esp,4
+
+    lea  eax, respuesta          ; Obtener dirección del buffer
+    push eax 				; Empujar dirección a la pila
+    push offset fmt 		; Empujar formato a la pila
+    call scanf 				; Leer cadena desde la entrada estándar
+    add esp, 8
+
+    mov eax, respuesta
+    cmp eax, 2
+    jg validarS
+    cmp eax, 1
+    je begin 
+
+    push offset salida 
+    call printf
+    add esp,4
+
     ret 
 
 main endp
@@ -468,11 +514,11 @@ MinesPosition proc
     mov bh, [arrBombas+eax]
 
     ; ------------ esto se puede comentariar (mostrar las posiciones de las minas)----------
-    push posiM2
-    push posiM1
-    push offset pruebaPrint
-    call printf
-    add esp, 12
+    ;push posiM2
+    ;push posiM1
+    ;push offset pruebaPrint
+    ;call printf
+    ;add esp, 12
 
 inicio:
     ;contPosition
