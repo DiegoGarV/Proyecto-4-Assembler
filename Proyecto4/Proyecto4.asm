@@ -10,7 +10,7 @@ ExitProcess proto,dwExitCode:dword
 
 
 .data
-    bienvenida byte "Bienvenido al juego de buscaminas",0Ah,"Instrucciones: ",0Ah,"1) Ingrese la fila y columna que quiere seleccionar ",0Ah,0Ah,0
+    bienvenida byte "Bienvenido al juego de buscaminas",0Ah,"Instrucciones: ",0Ah,"1) Ingrese la fila y columna que quiere seleccionar ",0Ah, "2) Destapa todas las casillas sin destapar una mina",0Ah,"3) Los numeros indican la cantidad de minas que hay alredor de esa casilla",0Ah,"4) Solo hay dos minas en el campo",0Ah,0Ah,0
     pregunta byte "Desea seguir jugando? si (1), no(2) ", 0Ah, 0
     respuesta dword 0
     salida byte "Adios !!!! Fue un gusto", 0Ah, 0
@@ -91,15 +91,28 @@ ExitProcess proto,dwExitCode:dword
     ;printf proto c : vararg 	; To print to std output.
     ;scanf proto c : vararg 		; To read from std input.
     system proto c : vararg 	; To clear the console screen.
-    rand proto c : vararg 		; To getting a random number.
-    srand proto c : vararg 	
+    
     
 ; --------------- aqui inicia el juego -------------- 
 main proc ; juego principal 
 
 begin: 
 
+    rand proto c : vararg 		; To getting a random number.
+    srand proto c : vararg 	    
+
+    mov contCasillas, 0         ; Se limpia todo para cuando se vuelva a intentar
+    mov contArr, 0
+    forArr:
+        mov eax, contArr
+        mov [arrTablero+eax], "s"
+        mov [arrBombas+eax], 0
+        inc contArr
+        cmp contArr, 16
+        jne forArr
+
     call randomPositionMine     ; coloca las minas 
+    
 
     push offset m1
     call printf
@@ -332,6 +345,14 @@ salidaF:
     push offset fmt 		; Empujar formato a la pila
     call scanf 				; Leer cadena desde la entrada estándar
     add esp, 8
+
+    push offset entr 
+    call printf
+    add esp,4
+
+    push offset entr 
+    call printf
+    add esp,4
 
     mov eax, respuesta
     cmp eax, 2
