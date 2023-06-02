@@ -105,6 +105,7 @@ begin:
     mov contArr, 0
     mov contMine, 0
     mov contPosition,0
+    mov perflag, 0
     forArr:
         mov eax, contArr
         mov [arrTablero+eax], "s"
