@@ -103,9 +103,12 @@ begin:
 
     mov contCasillas, 0         ; Se limpia todo para cuando se vuelva a intentar
     mov contArr, 0
+    mov contMine, 0
+    mov contPosition,0
     forArr:
         mov eax, contArr
         mov [arrTablero+eax], "s"
+        mov eax, contArr
         mov [arrBombas+eax], 0
         inc contArr
         cmp contArr, 16
